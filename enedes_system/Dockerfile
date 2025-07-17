@@ -1,24 +1,28 @@
-FROM php:8.1-apache
-
-# Instalar dependências do sistema primeiro (para cache do Docker)
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    && docker-php-ext-install pdo pdo_pgsql \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Habilitar mod_rewrite do Apache
-RUN a2enmod rewrite
+FROM nginx:alpine
 
 # Copiar arquivos da aplicação
-COPY . /var/www/html/
+COPY . /usr/share/nginx/html/
 
-# Definir permissões corretas
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+# Remover arquivo de configuração padrão
+RUN rm /etc/nginx/conf.d/default.conf
 
-# Expor porta
+# Criar configuração personalizada
+RUN echo 'server { \
+    listen 80; \
+    server_name _; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    \
+    # Cache para arquivos estáticos \
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ { \
+        expires 1y; \
+        add_header Cache-Control "public, immutable"; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
-
-# Comando de inicialização
-CMD ["apache2-foreground"]
+CMD ["nginx", "-g", "daemon off;"]
