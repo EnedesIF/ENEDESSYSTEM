@@ -1,8 +1,5 @@
 FROM nginx:alpine
 
-# Remover arquivos padrão do Nginx
-RUN rm -rf /usr/share/nginx/html/*
-
 # Copiar APENAS os arquivos HTML necessários (SEM pasta api/)
 COPY index.html /usr/share/nginx/html/
 COPY login.html /usr/share/nginx/html/
