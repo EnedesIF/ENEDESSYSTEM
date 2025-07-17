@@ -4,15 +4,29 @@ services:
     env: docker
     plan: free
     autoDeploy: true
-    # FORÇAR uso do Dockerfile - SEM buildCommand
-    # REMOVER qualquer startCommand que force Apache
-    dockerfilePath: ./Dockerfile
     
-    # Configurações específicas para Docker
+    # FORÇA usar Docker sem buildCommand
+    buildCommand: ""
+    startCommand: ""
+    
+    # Dockerfile específico
+    dockerfilePath: ./Dockerfile
     dockerContext: .
     
-    # Ignorar arquivos PHP completamente
+    # Build filters para ignorar PHP
     buildFilter:
       ignoredPaths:
         - api/
         - "*.php"
+        - "*.PHP"
+    
+    # Configurações específicas de runtime
+    disk:
+      name: sistema-enedes-disk
+      mountPath: /data
+    
+    # Headers de segurança
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
