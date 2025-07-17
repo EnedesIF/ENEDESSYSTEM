@@ -1,8 +1,8 @@
 <?php
 $host = 'ep-xxxxx.us-east-2.aws.neon.tech';
 $db   = 'neondb';
-$user = 'usuario_neon';
-$pass = 'senha_neon';
+$user = 'enedesifb';
+$pass = 'Enedes2025*';
 $port = "5432";
 
 try {
