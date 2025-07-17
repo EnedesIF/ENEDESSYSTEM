@@ -1,12 +1,12 @@
 <?php
-$host = 'ep-xxxxx.us-east-2.aws.neon.tech';
+$host = 'ep-sweet-bar-aec2ww8z-pooler.c-2.us-east-2.aws.neon.tech';
 $db   = 'neondb';
-$user = 'Enedesifb';
-$pass = 'Enedes2025*';
+$user = 'neondb_owner;
+$pass = 'npg_igfwntzh0j1C';
 $port = "5432";
 
 try {
-    $pdo = new PDO("pgsql:host=$host;port=$port;dbname=$db", $user, $pass, [
+    $pdo = new PDO("pgsql:host=$host;port=$port;dbname=$db;sslmode=require", $user, $pass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
     ]);
 } catch (PDOException $e) {
