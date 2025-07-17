@@ -1,10 +1,18 @@
-sservices:
+services:
   - type: web
-    name: enedes-2
+    name: sistema-enedes
     env: docker
     plan: free
     autoDeploy: true
-    buildCommand: ""
-    # CORRIGIDO: Removido startCommand incorreto para Apache
-    # Nginx roda automaticamente via Dockerfile CMD
+    # FORÇAR uso do Dockerfile - SEM buildCommand
+    # REMOVER qualquer startCommand que force Apache
     dockerfilePath: ./Dockerfile
+    
+    # Configurações específicas para Docker
+    dockerContext: .
+    
+    # Ignorar arquivos PHP completamente
+    buildFilter:
+      ignoredPaths:
+        - api/
+        - "*.php"
