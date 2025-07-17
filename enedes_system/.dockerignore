@@ -1,0 +1,16 @@
+# Excluir pasta API e todos os arquivos PHP
+api/
+*.php
+*.PHP
+
+# Excluir arquivos desnecessários
+.git/
+.gitignore
+README.md
+node_modules/
+.env
+.env.local
+
+# Manter apenas arquivos HTML
+!index.html
+!login.html
