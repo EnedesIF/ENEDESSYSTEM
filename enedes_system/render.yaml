@@ -6,3 +6,5 @@ services:
     autoDeploy: true
     buildCommand: ""
     startCommand: apache2-foreground
+    # Para logs mais detalhados
+    dockerfilePath: ./Dockerfile
