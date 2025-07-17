@@ -1,10 +1,10 @@
-services:
+sservices:
   - type: web
     name: enedes-2
     env: docker
     plan: free
     autoDeploy: true
     buildCommand: ""
-    startCommand: apache2-foreground
-    # Para logs mais detalhados
+    # CORRIGIDO: Removido startCommand incorreto para Apache
+    # Nginx roda automaticamente via Dockerfile CMD
     dockerfilePath: ./Dockerfile
