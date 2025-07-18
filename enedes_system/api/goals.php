@@ -1,59 +1,56 @@
 <?php
-require_once 'config.php';
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-$method = $_SERVER['REQUEST_METHOD'];
-$input = json_decode(file_get_contents('php://input'), true);
-
-switch ($method) {
-    case 'GET':
-        // LISTAR TODAS AS METAS
-        $stmt = $pdo->query("SELECT * FROM metas ORDER BY id ASC");
-        $metas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($metas);
-        break;
-
-    case 'POST':
-        // INSERIR NOVA META
-        if (isset($input['programa_id'], $input['descricao'])) {
-            $stmt = $pdo->prepare("INSERT INTO metas (programa_id, descricao) VALUES (:programa_id, :descricao)");
-            $stmt->execute([
-                ':programa_id' => $input['programa_id'],
-                ':descricao'   => $input['descricao']
-            ]);
-            echo json_encode(['status' => 'success', 'message' => 'Meta inserida com sucesso']);
-        } else {
-            http_response_code(400);
-            echo json_encode(['status' => 'error', 'message' => 'Dados incompletos']);
-        }
-        break;
-
-    case 'PUT':
-        // ATUALIZAR META
-        parse_str($_SERVER['QUERY_STRING'], $params);
-        if (isset($params['id'], $input['programa_id'], $input['descricao'])) {
-            $stmt = $pdo->prepare("UPDATE metas SET programa_id = :programa_id, descricao = :descricao WHERE id = :id");
-            $stmt->execute([
-                ':id'          => $params['id'],
-                ':programa_id' => $input['programa_id'],
-                ':descricao'   => $input['descricao']
-            ]);
-            echo json_encode(['status' => 'success', 'message' => 'Meta atualizada com sucesso']);
-        } else {
-            http_response_code(400);
-            echo json_encode(['status' => 'error', 'message' => 'Dados incompletos']);
-        }
-        break;
-
-    case 'DELETE':
-        // DELETAR META
-        parse_str($_SERVER['QUERY_STRING'], $params);
-        if (isset($params['id'])) {
-            $stmt = $pdo->prepare("DELETE FROM metas WHERE id = :id");
-            $stmt->execute([':id' => $params['id']]);
-            echo json_encode(['status' => 'success', 'message' => 'Meta removida com sucesso']);
-        } else {
-            http_response_code(400);
-            echo json_encode(['status' => 'error', 'message' => 'ID não informado']);
-        }
-        break;
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
 }
+
+// Configuração do banco de dados Neon
+$host = 'ep-blue-boat-a6n0xolm.us-east-2.aws.neon.tech';
+$dbname = 'neondb';
+$username = 'neondb_owner';
+$password = 'XFBQQWIhHxIR';
+$port = '5432';
+
+try {
+    $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require";
+    $pdo = new PDO($dsn, $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Inserir nova meta
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        $stmt = $pdo->prepare("
+            INSERT INTO goals (title, programa, description, responsavel, status, created_at) 
+            VALUES (?, ?, ?, ?, ?, NOW())
+        ");
+        
+        $result = $stmt->execute([
+            $input['title'] ?? '',
+            $input['programa'] ?? '',
+            $input['description'] ?? '',
+            $input['responsavel'] ?? '',
+            $input['status'] ?? 'pending'
+        ]);
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Meta salva com sucesso']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Erro ao salvar meta']);
+        }
+        
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        // Buscar todas as metas
+        $stmt = $pdo->query("SELECT * FROM goals ORDER BY created_at DESC");
+        $goals = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'data' => $goals]);
+    }
+    
+} catch (PDOException $e) {
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+}
+?>
