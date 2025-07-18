@@ -25,16 +25,16 @@ try {
         $input = json_decode(file_get_contents('php://input'), true);
         
         $stmt = $pdo->prepare("
-            INSERT INTO goals (title, programa, description, responsavel, status, created_at) 
+            INSERT INTO goals (title, objetivo, programa, indicadores, status, created_at) 
             VALUES (?, ?, ?, ?, ?, NOW())
         ");
         
         $result = $stmt->execute([
             $input['title'] ?? '',
+            $input['objetivo'] ?? '',
             $input['programa'] ?? '',
-            $input['description'] ?? '',
-            $input['responsavel'] ?? '',
-            $input['status'] ?? 'pending'
+            $input['indicadores'] ?? '[]',
+            $input['status'] ?? 'active'
         ]);
         
         if ($result) {
