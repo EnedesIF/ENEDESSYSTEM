@@ -19,38 +19,39 @@ try {
     $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require";
     $pdo = new PDO($dsn, $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Inserir nova meta
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
+        if (!isset($input['goals']) || !is_array($input['goals'])) {
+            echo json_encode(['success' => false, 'message' => 'Formato inválido: esperado array de metas.']);
+            exit;
+        }
+
         $stmt = $pdo->prepare("
             INSERT INTO goals (title, objetivo, programa, indicadores, status, created_at) 
             VALUES (?, ?, ?, ?, ?, NOW())
         ");
-        
-        $result = $stmt->execute([
-            $input['title'] ?? '',
-            $input['objetivo'] ?? '',
-            $input['programa'] ?? '',
-            $input['indicadores'] ?? '[]',
-            $input['status'] ?? 'active'
-        ]);
-        
-        if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Meta salva com sucesso']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Erro ao salvar meta']);
+
+        foreach ($input['goals'] as $goal) {
+            $stmt->execute([
+                $goal['title'] ?? '',
+                $goal['objetivo'] ?? '',
+                $goal['programa'] ?? '',
+                json_encode($goal['indicadores'] ?? []),
+                $goal['status'] ?? 'active'
+            ]);
         }
-        
-    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        // Buscar todas as metas
+
+        echo json_encode(['success' => true, 'message' => 'Todas as metas foram salvas.']);
+    }
+
+    elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $stmt = $pdo->query("SELECT * FROM goals ORDER BY created_at DESC");
         $goals = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $goals]);
     }
-    
+
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>
