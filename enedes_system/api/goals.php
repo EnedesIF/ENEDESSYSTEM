@@ -21,10 +21,11 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Inserir metas em lote
         $input = json_decode(file_get_contents('php://input'), true);
 
         if (!isset($input['goals']) || !is_array($input['goals'])) {
-            echo json_encode(['success' => false, 'message' => 'Formato inválido: esperado array de metas.']);
+            echo json_encode(['success' => false, 'message' => 'Formato inválido de dados recebidos.']);
             exit;
         }
 
@@ -39,14 +40,14 @@ try {
                 $goal['objetivo'] ?? '',
                 $goal['programa'] ?? '',
                 json_encode($goal['indicadores'] ?? []),
-                $goal['status'] ?? 'active'
+                $goal['status'] ?? 'ativo'
             ]);
         }
 
-        echo json_encode(['success' => true, 'message' => 'Todas as metas foram salvas.']);
-    }
-
-    elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        echo json_encode(['success' => true, 'message' => 'Todas as metas foram salvas com sucesso.']);
+    
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        // Buscar todas as metas
         $stmt = $pdo->query("SELECT * FROM goals ORDER BY created_at DESC");
         $goals = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode(['success' => true, 'data' => $goals]);
@@ -55,3 +56,4 @@ try {
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
+?>
