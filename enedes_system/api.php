@@ -16,29 +16,28 @@ if ($method === 'OPTIONS') {
 
 switch ($endpoint) {
     case 'dashboard-stats':
-        if ($method === 'GET') {
-            getDashboardStats($pdo);
-        }
+        if ($method === 'GET') getDashboardStats($pdo);
         break;
     case 'programs':
-        if ($method === 'GET') {
-            getPrograms($pdo);
-        }
+        if ($method === 'GET') getPrograms($pdo);
         break;
     case 'actions':
-        if ($method === 'GET') {
-            getActions($pdo);
-        }
+        if ($method === 'GET') getActions($pdo);
         break;
     case 'followups':
-        if ($method === 'GET') {
-            getFollowups($pdo);
-        }
+        if ($method === 'GET') getFollowups($pdo);
         break;
     case 'tasks':
-        if ($method === 'GET') {
-            getTasks($pdo);
-        }
+        if ($method === 'GET') getTasks($pdo);
+        break;
+    case 'goals':
+        if ($method === 'GET') getGoals($pdo);
+        break;
+    case 'cronograma':
+        if ($method === 'GET') getCronograma($pdo);
+        break;
+    case 'inventario':
+        if ($method === 'GET') getInventario($pdo);
         break;
     default:
         http_response_code(404);
@@ -46,18 +45,17 @@ switch ($endpoint) {
         break;
 }
 
+// Funções
+
 function getDashboardStats($pdo) {
     try {
         $stats = [];
-
-        $tables = ['programs', 'actions', 'followups', 'tasks'];
-
+        $tables = ['programs', 'actions', 'followups', 'tasks', 'goals', 'cronograma', 'inventario'];
         foreach ($tables as $table) {
             $stmt = $pdo->query("SELECT COUNT(*) as total FROM $table");
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             $stats[$table] = $row['total'];
         }
-
         echo json_encode($stats);
     } catch (PDOException $e) {
         http_response_code(500);
@@ -66,45 +64,40 @@ function getDashboardStats($pdo) {
 }
 
 function getPrograms($pdo) {
-    try {
-        $stmt = $pdo->query("SELECT * FROM programs");
-        $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($programs);
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo json_encode(['erro' => 'Erro ao obter programas']);
-    }
+    fetchTable($pdo, 'programs');
 }
 
 function getActions($pdo) {
-    try {
-        $stmt = $pdo->query("SELECT * FROM actions");
-        $actions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($actions);
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo json_encode(['erro' => 'Erro ao obter ações']);
-    }
+    fetchTable($pdo, 'actions');
 }
 
 function getFollowups($pdo) {
-    try {
-        $stmt = $pdo->query("SELECT * FROM followups");
-        $followups = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($followups);
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo json_encode(['erro' => 'Erro ao obter follow-ups']);
-    }
+    fetchTable($pdo, 'followups');
 }
 
 function getTasks($pdo) {
+    fetchTable($pdo, 'tasks');
+}
+
+function getGoals($pdo) {
+    fetchTable($pdo, 'goals');
+}
+
+function getCronograma($pdo) {
+    fetchTable($pdo, 'cronograma');
+}
+
+function getInventario($pdo) {
+    fetchTable($pdo, 'inventario');
+}
+
+function fetchTable($pdo, $tableName) {
     try {
-        $stmt = $pdo->query("SELECT * FROM tasks");
-        $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode($tasks);
+        $stmt = $pdo->query("SELECT * FROM $tableName");
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode($results);
     } catch (PDOException $e) {
         http_response_code(500);
-        echo json_encode(['erro' => 'Erro ao obter tarefas']);
+        echo json_encode(['erro' => "Erro ao obter dados de $tableName"]);
     }
 }
