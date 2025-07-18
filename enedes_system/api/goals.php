@@ -1,59 +1,29 @@
 <?php
+require_once('config.php');
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-// Configuração do banco de dados Neon
-$host = 'ep-blue-boat-a6n0xolm.us-east-2.aws.neon.tech';
-$dbname = 'neondb';
-$username = 'neondb_owner';
-$password = 'XFBQQWIhHxIR';
-$port = '5432';
-
 try {
-    $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require";
-    $pdo = new PDO($dsn, $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $data = json_decode(file_get_contents('php://input'), true);
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Inserir metas em lote
-        $input = json_decode(file_get_contents('php://input'), true);
+    $titulo = $data['titulo'] ?? '';
+    $objetivo = $data['objetivo'] ?? '';
+    $programa = $data['programa'] ?? '';
+    $indicadores = json_encode($data['indicadores'] ?? []);
+    $created_at = date('Y-m-d H:i:s');
 
-        if (!isset($input['goals']) || !is_array($input['goals'])) {
-            echo json_encode(['success' => false, 'message' => 'Formato inválido de dados recebidos.']);
-            exit;
-        }
+    $stmt = $pdo->prepare("INSERT INTO goals (titulo, objetivo, programa, indicadores, created_at) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$titulo, $objetivo, $programa, $indicadores, $created_at]);
 
-        $stmt = $pdo->prepare("
-            INSERT INTO goals (title, objetivo, programa, indicadores, status, created_at) 
-            VALUES (?, ?, ?, ?, ?, NOW())
-        ");
-
-        foreach ($input['goals'] as $goal) {
-            $stmt->execute([
-                $goal['title'] ?? '',
-                $goal['objetivo'] ?? '',
-                $goal['programa'] ?? '',
-                json_encode($goal['indicadores'] ?? []),
-                $goal['status'] ?? 'ativo'
-            ]);
-        }
-
-        echo json_encode(['success' => true, 'message' => 'Todas as metas foram salvas com sucesso.']);
-    
-    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        // Buscar todas as metas
-        $stmt = $pdo->query("SELECT * FROM goals ORDER BY created_at DESC");
-        $goals = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        echo json_encode(['success' => true, 'data' => $goals]);
-    }
-
-} catch (PDOException $e) {
+    echo json_encode(['success' => true, 'message' => 'Meta salva com sucesso.']);
+} catch (Exception $e) {
+    http_response_code(500);
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>
