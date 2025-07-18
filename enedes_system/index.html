@@ -601,6 +601,7 @@
 
         // Data management
         function saveData() {
+            // Manter localStorage como backup
             const data = {
                 actions,
                 followUps,
@@ -611,6 +612,53 @@
                 activityLog
             };
             localStorage.setItem('enedes_data', JSON.stringify(data));
+            
+            // NOVO: Enviar para backend
+            enviarDadosParaBackend();
+        }
+
+        async function enviarDadosParaBackend() {
+            try {
+                // Enviar ações para actions.php
+                for (const action of actions) {
+                    if (!action.enviado) {
+                        await fetch('/api/actions.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title: action.titulo,
+                                programa: action.programa,
+                                description: action.descricao,
+                                responsavel: action.responsavel,
+                                status: action.status
+                            })
+                        });
+                        action.enviado = true;
+                    }
+                }
+                
+                // Enviar cronograma
+                for (const etapa of cronograma) {
+                    if (!etapa.enviado) {
+                        await fetch('/api/cronograma.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                nome: etapa.nome,
+                                inicio: etapa.inicio,
+                                fim: etapa.fim,
+                                rubrica: etapa.rubrica,
+                                executado: etapa.executado
+                            })
+                        });
+                        etapa.enviado = true;
+                    }
+                }
+                
+                console.log("✅ Dados sincronizados com o backend!");
+            } catch (error) {
+                console.error("❌ Erro ao sincronizar:", error);
+            }
         }
 
         function loadData() {
