@@ -1,7 +1,16 @@
-FROM nginx:alpine
-COPY index.html /usr/share/nginx/html/
-COPY login.html /usr/share/nginx/html/
-RUN rm /etc/nginx/conf.d/default.conf
-RUN echo 'server { listen 80; server_name _; root /usr/share/nginx/html; index index.html; location / { try_files $uri $uri/ /index.html; } location ~ \.php$ { return 404; } }' > /etc/nginx/conf.d/default.conf
+FROM php:8.1-apache
+
+# Instala suporte a PostgreSQL
+RUN docker-php-ext-install pdo pdo_pgsql
+
+# Copia todos os arquivos da aplicação
+COPY . /var/www/html/
+
+# Define permissões corretas
+RUN chown -R www-data:www-data /var/www/html
+
+# Ativa mod_rewrite do Apache se precisar de rotas amigáveis
+RUN a2enmod rewrite
+
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["apache2-foreground"]
