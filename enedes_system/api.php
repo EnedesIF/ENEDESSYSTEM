@@ -31,11 +31,7 @@ switch ($endpoint) {
         if ($method === 'GET') getTasks($pdo);
         break;
     case 'goals':
-        if ($method === 'GET') {
-            getGoals($pdo);
-        } elseif ($method === 'POST') {
-            insertGoal($pdo);
-        }
+        if ($method === 'GET') getGoals($pdo);
         break;
     case 'cronograma':
         if ($method === 'GET') getCronograma($pdo);
@@ -87,8 +83,21 @@ function getGoals($pdo) {
     fetchTable($pdo, 'goals');
 }
 
-function insertGoal($pdo) {
-    $data = json_decode(file_get_contents('php://input'), true);
+function getCronograma($pdo) {
+    fetchTable($pdo, 'cronograma');
+}
 
-    if (!$data || empty($data['title'])) {
-        http_response_
+function getInventario($pdo) {
+    fetchTable($pdo, 'inventario');
+}
+
+function fetchTable($pdo, $tableName) {
+    try {
+        $stmt = $pdo->query("SELECT * FROM $tableName");
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode($results);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['erro' => "Erro ao obter dados de $tableName"]);
+    }
+}
